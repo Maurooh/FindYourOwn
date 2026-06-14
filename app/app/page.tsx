@@ -1,263 +1,218 @@
-﻿import {
-  Trophy,
-  Flame,
-  Target,
-  ChevronRight,
-  Users,
-  TrendingUp,
-  BookOpen,
-  Dumbbell,
-  Wallet,
-  Sparkles,
-  Crown,
-} from 'lucide-react'
+﻿import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import {
+  getProfile,
+  getAttributes,
+  getMissionsWithStatus,
+  getFriendsRanking,
+} from '@/lib/queries'
+import { getLevelProgress, levelTitle } from '@/lib/game'
+import { LevelRing } from '@/components/level-ring'
+import { AttributesPanel } from '@/components/attributes-panel'
+import { MissionCard } from '@/components/mission-card'
+import { Flame, Trophy, ChevronRight, Sparkles } from 'lucide-react'
 
-const stats = [
-  {
-    icon: Trophy,
-    value: '2.480',
-    label: 'XP Total',
-    tone: 'text-primary',
-    bg: 'bg-primary/12',
-  },
-  {
-    icon: Flame,
-    value: '12',
-    label: 'Dias seguidos',
-    tone: 'text-streak',
-    bg: 'bg-streak/12',
-  },
-  {
-    icon: Target,
-    value: '3/5',
-    label: 'Missões hoje',
-    tone: 'text-mission',
-    bg: 'bg-mission/12',
-  },
-  {
-    icon: TrendingUp,
-    value: '#4',
-    label: 'Ranking da guilda',
-    tone: 'text-rank',
-    bg: 'bg-rank/12',
-  },
-]
+export default async function DashboardPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
 
-const missions = [
-  {
-    icon: BookOpen,
-    title: 'Ler 10 páginas',
-    category: 'Conhecimento',
-    xp: 30,
-    tone: 'text-rank',
-    bg: 'bg-rank/12',
-  },
-  {
-    icon: Dumbbell,
-    title: 'Treinar 20 minutos',
-    category: 'Saúde',
-    xp: 50,
-    tone: 'text-mission',
-    bg: 'bg-mission/12',
-  },
-  {
-    icon: Wallet,
-    title: 'Planejar gastos da semana',
-    category: 'Finanças',
-    xp: 40,
-    tone: 'text-streak',
-    bg: 'bg-streak/12',
-  },
-]
+  const [profile, attributes, missions, ranking] = await Promise.all([
+    getProfile(user.id),
+    getAttributes(user.id),
+    getMissionsWithStatus(user.id),
+    getFriendsRanking(user.id),
+  ])
 
-const guild = [
-  { rank: 1, name: 'João', xp: '3.240', medal: '🥇' },
-  { rank: 2, name: 'Ana', xp: '2.890', medal: '🥈' },
-  { rank: 3, name: 'Carlos', xp: '2.710', medal: '🥉' },
-  { rank: 4, name: 'Você', xp: '2.480', medal: null, isYou: true },
-]
+  if (!profile) redirect('/auth/login')
 
-export default function DashboardPage() {
+  const progress = getLevelProgress(profile.total_xp)
+  const dailyMissions = missions.filter((m) => m.type === 'daily')
+  const completedToday = dailyMissions.filter((m) => m.completed).length
+  const myRank = ranking.findIndex((r) => r.isCurrentUser) + 1
+
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Bom dia'
+    if (h < 18) return 'Boa tarde'
+    return 'Boa noite'
+  })()
+
   return (
-    <main className="min-h-screen p-4 md:p-6">
-      <div className="mx-auto max-w-7xl space-y-5">
-        {/* HERO */}
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/15 blur-3xl"
-          />
-          <div className="relative p-6 md:p-8">
-            <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-5">
-                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-primary/30 bg-primary/12">
-                  <span className="text-3xl font-bold text-primary">11</span>
-                  <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Nível
-                  </span>
-                </div>
+    <div className="flex flex-col gap-5 px-4 pt-6 md:px-0">
+      {/* Header */}
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">{greeting},</p>
+          <h1 className="text-xl font-bold tracking-tight">
+            {profile.display_name ?? 'Jogador'}
+          </h1>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5">
+          <Flame className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold">
+            {profile.current_streak}
+          </span>
+          <span className="text-xs text-muted-foreground">dias</span>
+        </div>
+      </header>
 
-                <div>
-                  <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.3em] text-primary">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Find Your Own
-                  </p>
-                  <h1 className="mt-2 text-pretty text-3xl font-bold md:text-4xl">
-                    Guerreiro Nível 11
-                  </h1>
-                  <p className="mt-1.5 text-muted-foreground">
-                    Você está mais perto do próximo nível do que imagina.
-                  </p>
-                </div>
-              </div>
-
-              <div className="w-full max-w-md rounded-2xl border border-border bg-secondary/40 p-5">
-                <div className="mb-2.5 flex items-end justify-between">
-                  <span className="text-sm font-semibold">
-                    2.480 <span className="text-muted-foreground">XP</span>
-                  </span>
-                  <span className="text-sm font-bold text-primary">68%</span>
-                </div>
-
-                <div
-                  className="h-3 overflow-hidden rounded-full bg-muted"
-                  role="progressbar"
-                  aria-valuenow={68}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="Progresso do nível"
-                >
-                  <div
-                    className="h-full rounded-full bg-primary shadow-[0_0_12px_var(--primary)]"
-                    style={{ width: '68%' }}
-                  />
-                </div>
-
-                <p className="mt-2.5 text-xs text-muted-foreground">
-                  Faltam <span className="font-semibold text-foreground">820 XP</span> para o próximo nível
-                </p>
-              </div>
+      {/* Hero level card */}
+      <section className="rounded-3xl border border-border bg-card p-5">
+        <div className="flex items-center gap-4">
+          <LevelRing level={progress.level} percent={progress.percent} />
+          <div className="min-w-0 flex-1">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary">
+              <Sparkles className="h-3 w-3" />
+              {levelTitle(progress.level)}
+            </span>
+            <p className="mt-2 text-2xl font-bold leading-none">
+              {profile.total_xp.toLocaleString('pt-BR')}{' '}
+              <span className="text-sm font-normal text-muted-foreground">
+                XP total
+              </span>
+            </p>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Faltam{' '}
+              <span className="font-medium text-foreground">
+                {progress.xpForNextLevel - progress.xpIntoLevel} XP
+              </span>{' '}
+              para o nível {progress.level + 1}
+            </p>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${progress.percent}%` }}
+              />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* RESUMO */}
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {stats.map((stat) => (
+      {/* Quick stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard
+          label="Hoje"
+          value={`${completedToday}/${dailyMissions.length}`}
+          hint="missões"
+        />
+        <StatCard
+          label="Sequência"
+          value={`${profile.current_streak}`}
+          hint="dias"
+        />
+        <StatCard
+          label="Ranking"
+          value={myRank > 0 ? `#${myRank}` : '—'}
+          hint="entre amigos"
+        />
+      </div>
+
+      {/* Missões de hoje */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold">Missões de hoje</h2>
+          <Link
+            href="/app/missions"
+            className="flex items-center text-xs font-medium text-primary"
+          >
+            Ver todas <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        {dailyMissions.length === 0 ? (
+          <EmptyMissions />
+        ) : (
+          <div className="flex flex-col gap-2.5">
+            {dailyMissions.slice(0, 5).map((m) => (
+              <MissionCard key={m.id} mission={m} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Atributos */}
+      <section className="rounded-3xl border border-border bg-card p-5">
+        <h2 className="mb-4 font-semibold">Atributos</h2>
+        <AttributesPanel attributes={attributes} />
+      </section>
+
+      {/* Ranking preview */}
+      <section className="rounded-3xl border border-border bg-card p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 font-semibold">
+            <Trophy className="h-4 w-4 text-primary" /> Ranking
+          </h2>
+          <Link
+            href="/app/friends"
+            className="flex items-center text-xs font-medium text-primary"
+          >
+            Ver tudo <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        <div className="flex flex-col gap-2">
+          {ranking.slice(0, 3).map((entry, i) => (
             <div
-              key={stat.label}
-              className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
+              key={entry.id}
+              className="flex items-center gap-3 rounded-xl px-1 py-1.5"
             >
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.bg}`}
-              >
-                <stat.icon className={`h-5 w-5 ${stat.tone}`} />
-              </div>
-              <h2 className="mt-4 text-2xl font-bold tracking-tight">
-                {stat.value}
-              </h2>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <span className="w-5 text-center text-sm font-bold text-muted-foreground">
+                {i + 1}
+              </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-semibold">
+                {(entry.display_name ?? '?').slice(0, 2).toUpperCase()}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                {entry.display_name ?? 'Jogador'}
+                {entry.isCurrentUser && (
+                  <span className="ml-1 text-xs text-primary">(você)</span>
+                )}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Nv {entry.level}
+              </span>
             </div>
           ))}
-        </section>
+        </div>
+      </section>
+    </div>
+  )
+}
 
-        {/* GRID PRINCIPAL */}
-        <section className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-          {/* MISSÕES */}
-          <div className="rounded-3xl border border-border bg-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold">Missões de Hoje</h2>
-                <p className="text-sm text-muted-foreground">
-                  3 de 5 concluídas
-                </p>
-              </div>
-              <button
-                type="button"
-                className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-              >
-                Ver todas
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+function StatCard({
+  label,
+  value,
+  hint,
+}: {
+  label: string
+  value: string
+  hint: string
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-3 text-center">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 text-xl font-bold leading-none">{value}</p>
+      <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>
+    </div>
+  )
+}
 
-            <div className="mt-5 space-y-3">
-              {missions.map((mission) => (
-                <div
-                  key={mission.title}
-                  className="group flex items-center justify-between gap-4 rounded-2xl border border-border bg-secondary/30 p-4 transition-colors hover:border-primary/40"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${mission.bg}`}
-                    >
-                      <mission.icon className={`h-5 w-5 ${mission.tone}`} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{mission.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {mission.category}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-primary/12 px-3 py-1 text-sm font-bold text-primary">
-                    +{mission.xp} XP
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* GUILDA */}
-          <div className="rounded-3xl border border-border bg-card p-6">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/12">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">Sua Guilda</h2>
-                <p className="text-sm text-muted-foreground">
-                  Ranking semanal
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-2">
-              {guild.map((member) => (
-                <div
-                  key={member.name}
-                  className={`flex items-center justify-between gap-3 rounded-2xl border p-3 ${
-                    member.isYou
-                      ? 'border-primary/40 bg-primary/10'
-                      : 'border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-sm font-bold">
-                      {member.medal ?? member.name.charAt(0)}
-                    </span>
-                    <span
-                      className={`font-medium ${member.isYou ? 'text-primary' : ''}`}
-                    >
-                      {member.isYou && (
-                        <Crown className="mr-1 inline h-4 w-4 text-primary" />
-                      )}
-                      {member.name}
-                    </span>
-                  </div>
-                  <span
-                    className={`text-sm font-semibold tabular-nums ${
-                      member.isYou ? 'text-primary' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {member.xp} XP
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+function EmptyMissions() {
+  return (
+    <div className="rounded-2xl border border-dashed border-border p-6 text-center">
+      <p className="text-sm text-muted-foreground">
+        Nenhuma missão por aqui. Crie a sua primeira!
+      </p>
+      <Link
+        href="/app/missions"
+        className="mt-2 inline-block text-sm font-medium text-primary"
+      >
+        Ir para missões
+      </Link>
+    </div>
   )
 }
