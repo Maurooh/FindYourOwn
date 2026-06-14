@@ -11,7 +11,7 @@ export function AuthShell({
   children: React.ReactNode
 }) {
   return (
-    <main className="flex min-h-svh w-full flex-col items-center justify-center bg-background px-5 py-10">
+    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background px-5 py-10">
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">

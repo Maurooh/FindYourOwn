@@ -20,7 +20,7 @@ export default async function LandingPage() {
   if (user) redirect('/app')
 
   return (
-    <main className="min-h-svh bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
         <div className="flex items-center gap-2">
@@ -31,9 +31,9 @@ export default async function LandingPage() {
             Find Your Own
           </span>
         </div>
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/auth/login">Entrar</Link>
-        </Button>
+        <Link href="/auth/login">
+          <Button variant="ghost" size="sm">Entrar</Button>
+        </Link>
       </header>
 
       {/* Hero */}
@@ -52,14 +52,14 @@ export default async function LandingPage() {
             amigos.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/auth/sign-up">
+            <Link href="/auth/sign-up">
+              <Button size="lg" className="gap-2">
                 Começar agora <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/auth/login">Já tenho conta</Link>
-            </Button>
+              </Button>
+            </Link>
+            <Link href="/auth/login">
+              <Button size="lg" variant="secondary">Já tenho conta</Button>
+            </Link>
           </div>
         </div>
 

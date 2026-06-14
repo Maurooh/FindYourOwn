@@ -160,3 +160,28 @@ export async function getRecentHistory(userId: string, limit = 15) {
     .limit(limit)
   return data ?? []
 }
+
+// Adicionar ao final de lib/queries.ts (mantendo os imports existentes)
+
+export async function getSuggestedMissions(userId: string): Promise<Mission[]> {
+  const supabase = await createClient()
+
+  // templates disponíveis
+  const { data: templates } = await supabase
+    .from('missions')
+    .select('*')
+    .eq('is_template', true)
+    .order('created_at', { ascending: true })
+
+  // títulos das missões que o usuário já tem (para não sugerir duplicado)
+  const { data: own } = await supabase
+    .from('missions')
+    .select('title')
+    .eq('user_id', userId)
+
+  const ownTitles = new Set((own ?? []).map((m) => m.title))
+
+  return ((templates ?? []) as Mission[]).filter(
+    (t) => !ownTitles.has(t.title),
+  )
+}

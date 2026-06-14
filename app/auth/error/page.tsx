@@ -17,9 +17,9 @@ export default function AuthErrorPage() {
           O link pode ter expirado ou já ter sido usado. Tente entrar
           novamente.
         </p>
-        <Button asChild className="w-full">
-          <Link href="/auth/login">Voltar ao login</Link>
-        </Button>
+        <Link href="/auth/login" className="w-full">
+          <Button className="w-full">Voltar ao login</Button>
+        </Link>
       </div>
     </AuthShell>
   )

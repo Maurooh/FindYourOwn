@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import {
   dailyPeriodKey,
   levelFromXp,
@@ -262,4 +263,47 @@ export async function removeFriend(friendId: string) {
 
   revalidatePath('/app/friends')
   return { success: true }
+}
+
+// Adicionar ao final de lib/actions.ts (mantendo os imports existentes)
+
+export async function adoptSuggestedMission(templateId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado' }
+
+  const { data: template, error: tErr } = await supabase
+    .from('missions')
+    .select('*')
+    .eq('id', templateId)
+    .eq('is_template', true)
+    .single<Mission>()
+
+  if (tErr || !template) return { error: 'Missão sugerida não encontrada' }
+
+  const { error } = await supabase.from('missions').insert({
+    user_id: user.id,
+    title: template.title,
+    description: template.description,
+    type: template.type,
+    xp_reward: template.xp_reward,
+    attribute_key: template.attribute_key,
+    attribute_reward: template.attribute_reward,
+    icon: template.icon,
+    is_template: false,
+  })
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/app')
+  revalidatePath('/app/missions')
+  return { success: true }
+}
+
+export async function signOut() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  redirect('/auth/login')
 }

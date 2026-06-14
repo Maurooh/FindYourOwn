@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BottomNav } from '@/components/bottom-nav'
+import { Sidebar } from '@/components/sidebar'
 
 export default async function AppLayout({
   children,
@@ -15,7 +16,12 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <div className="mx-auto min-h-svh w-full max-w-md pb-24">{children}</div>
+      <Sidebar />
+      <div className="min-h-svh w-full pb-24 md:pb-0 md:pl-64">
+        <div className="mx-auto w-full max-w-md md:max-w-none md:px-8 md:py-6">
+          {children}
+        </div>
+      </div>
       <BottomNav />
     </div>
   )

@@ -17,9 +17,9 @@ export default function SignUpSuccessPage() {
           Verifique sua caixa de entrada e clique no link para ativar a sua
           conta. Depois, é só entrar e começar a evoluir.
         </p>
-        <Button asChild className="w-full">
-          <Link href="/auth/login">Ir para o login</Link>
-        </Button>
+        <Link href="/auth/login" className="w-full">
+          <Button className="w-full">Ir para o login</Button>
+        </Link>
       </div>
     </AuthShell>
   )
