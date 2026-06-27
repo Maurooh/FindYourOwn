@@ -20,8 +20,8 @@ export function AddFriendForm() {
         toast.error(res.error)
         return
       }
-      toast.success('Amigo adicionado!', {
-        description: res?.name ?? undefined,
+      toast.success('Pedido de amizade enviado!', {
+        description: res?.name ? `Aguardando ${res.name} aceitar.` : undefined,
       })
       setCode('')
     })

@@ -16,6 +16,10 @@ export const metadata: Metadata = {
     'O RPG da vida real. Complete missões diárias, ganhe XP, evolua atributos e suba de nível ao lado dos seus amigos.',
   generator: 'v0.app',
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/find-your-own-primary-180.png',
+    apple: '/find-your-own-primary-180.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',

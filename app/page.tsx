@@ -1,9 +1,9 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import {
-  Compass,
   Swords,
   Flame,
   TrendingUp,
@@ -24,9 +24,7 @@ export default async function LandingPage() {
       {/* Header */}
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Compass className="h-5 w-5" />
-          </span>
+          <Image src="/find-your-own-primary-180.png" alt="Find Your Own" width={36} height={36} className="rounded-xl" />
           <span className="text-lg font-semibold tracking-tight">
             Find Your Own
           </span>
